@@ -8,6 +8,8 @@ import { setupMap } from './js/map';
 import { setupKeyboard } from './js/keyboard';
 import { setupMouse } from './js/mouse';
 import { setupMIDI } from './js/midi';
+import { captureFrame, downloadZip } from './js/export';
+import { rebuildRightPane } from './js/ui/right-pane';
 
 import globals from './js/globals';
 import { simulationUniforms, displayUniforms } from './js/uniforms';
@@ -94,12 +96,12 @@ function update() {
     for(let i=0; i<globals.pingPongSteps; i++) {
       var nextRenderTargetIndex = globals.currentRenderTargetIndex === 0 ? 1 : 0;
 
-      simulationUniforms.previousIterationTexture.value = renderTargets[globals.currentRenderTargetIndex].texture;  // grab the result of the last iteration
-      renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);                                       // prepare to render into the next render target
-      renderer.render(scene, camera);                                                                       // run the simulation shader on that texture
-      simulationUniforms.previousIterationTexture.value = renderTargets[nextRenderTargetIndex].texture;     // save the result of this simulation step for use in the next step
-      displayUniforms.textureToDisplay.value = renderTargets[nextRenderTargetIndex].texture;                // pass this result to the display material too
-      displayUniforms.previousIterationTexture.value = renderTargets[globals.currentRenderTargetIndex].texture;     // pass the previous iteration result too for history-based rendering effects
+      simulationUniforms.previousIterationTexture.value = renderTargets[globals.currentRenderTargetIndex].texture;
+      renderer.setRenderTarget(renderTargets[nextRenderTargetIndex]);
+      renderer.render(scene, camera);
+      simulationUniforms.previousIterationTexture.value = renderTargets[nextRenderTargetIndex].texture;
+      displayUniforms.textureToDisplay.value = renderTargets[nextRenderTargetIndex].texture;
+      displayUniforms.previousIterationTexture.value = renderTargets[globals.currentRenderTargetIndex].texture;
 
       globals.currentRenderTargetIndex = nextRenderTargetIndex;
     }
@@ -111,6 +113,30 @@ function update() {
     // Render the latest iteration to the screen
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
+  }
+
+  // PNG sequence recording - capture frame synchronously
+  if (globals.isRecording && !globals.isPaused && !globals.isCapturingFrame) {
+    if (globals.currentRecordingFrame < globals.totalRecordingFrames) {
+      globals.isCapturingFrame = true;
+      
+      captureFrame(globals.currentRecordingFrame, globals.recordingPrefix)
+        .then((frameData) => {
+          globals.recordedFrames.push(frameData);
+          globals.currentRecordingFrame++;
+          globals.isCapturingFrame = false;
+          
+          // Update UI to show progress
+          rebuildRightPane();
+        });
+    } else {
+      // Recording complete - create and download ZIP
+      globals.isRecording = false;
+      downloadZip(globals.recordedFrames, globals.recordingPrefix);
+      globals.recordedFrames = [];
+      globals.currentRecordingFrame = 0;
+      rebuildRightPane();
+    }
   }
 
   // Tick the FPS and iteration counters
