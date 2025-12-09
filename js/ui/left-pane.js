@@ -24,7 +24,7 @@ let settingsPane,
 
 // Settings State
 let settingsState = {
-  name: "My Settings",
+  name: "My settings",
   selected: "",
 };
 
@@ -46,9 +46,19 @@ function saveSettings() {
   }
 
   const settings = getSavedSettings();
+
+  // Create a deep copy of parameterValues
+  const parameterValuesCopy = JSON.parse(JSON.stringify(parameterValues));
+  
+  // Remove large image data to prevent localStorage quota exceeded errors
+  if (parameterValuesCopy.styleMap) {
+    parameterValuesCopy.styleMap.imageData = null;
+    parameterValuesCopy.styleMap.imageLoaded = false;
+  }
+
   settings[name] = {
     version: 1,
-    parameterValues: JSON.parse(JSON.stringify(parameterValues)),
+    parameterValues: parameterValuesCopy,
     actions: {
       totalRecordingFrames: globals.totalRecordingFrames,
       recordingPrefix: globals.recordingPrefix,
@@ -149,8 +159,22 @@ function loadSettings() {
         );
       };
       img.src = parameterValues.styleMap.imageData;
+
+      if (styleMapPreviewImageContainer && styleMapPreviewImage) {
+        styleMapPreviewImageContainer.style.display = "block";
+        styleMapPreviewImage.setAttribute(
+          "src",
+          parameterValues.styleMap.imageData
+        );
+      }
     } else if (!parameterValues.styleMap.imageLoaded) {
       simulationUniforms.styleMapTexture.value = undefined;
+      if (styleMapPreviewImageContainer) {
+        styleMapPreviewImageContainer.style.display = "none";
+      }
+      if (styleMapChooser) {
+        styleMapChooser.value = null;
+      }
     }
 
     // Update Display Uniforms
@@ -211,7 +235,7 @@ function deleteSettings() {
 function setupSaveLoadSettings() {
   // Use settingsPane directly
   settingsPane.addInput(settingsState, "name", { label: "Name" });
-  settingsPane.addButton({ title: "Save Settings" }).on("click", saveSettings);
+  settingsPane.addButton({ title: "Save settings" }).on("click", saveSettings);
 
   const settings = getSavedSettings();
   const options = {};
