@@ -766,6 +766,22 @@ function setupActions() {
     label: "Restart pattern",
   });
 
+  // Output Folder Selection
+  actionsFolder
+    .addButton({
+      title: globals.outputDirectoryHandle
+        ? `📂 Folder: ${globals.outputDirectoryHandle.name}`
+        : "📂 Set Output Folder",
+    })
+    .on("click", async () => {
+      try {
+        globals.outputDirectoryHandle = await window.showDirectoryPicker();
+        rebuildRightPane();
+      } catch (err) {
+        console.error("Error selecting directory:", err);
+      }
+    });
+
   // Recording status monitor (only show when recording)
   if (globals.isRecording) {
     actionsFolder.addMonitor(globals, "currentRecordingFrame", {

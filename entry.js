@@ -8,7 +8,7 @@ import { setupMap } from "./js/map";
 import { setupKeyboard } from "./js/keyboard";
 import { setupMouse } from "./js/mouse";
 import { setupMIDI } from "./js/midi";
-import { captureFrame, downloadZip } from "./js/export";
+import { captureFrame, downloadZip, saveFrameToFolder } from "./js/export";
 import { rebuildRightPane } from "./js/ui/right-pane";
 
 import globals from "./js/globals";
@@ -139,21 +139,49 @@ function update() {
     if (globals.currentRecordingFrame < globals.totalRecordingFrames) {
       globals.isCapturingFrame = true;
 
-      captureFrame(globals.currentRecordingFrame, globals.recordingPrefix).then(
-        (frameData) => {
+      if (globals.outputDirectoryHandle) {
+        // Save directly to folder
+        saveFrameToFolder(
+          globals.currentRecordingFrame,
+          globals.recordingPrefix,
+          globals.outputDirectoryHandle
+        )
+          .then(() => {
+            globals.currentRecordingFrame++;
+            globals.isCapturingFrame = false;
+            rebuildRightPane();
+          })
+          .catch((err) => {
+            console.error("Error saving frame:", err);
+            globals.isRecording = false;
+            globals.isCapturingFrame = false;
+            alert("Error saving frame to folder. Recording stopped.");
+            rebuildRightPane();
+          });
+      } else {
+        // Fallback to ZIP
+        captureFrame(
+          globals.currentRecordingFrame,
+          globals.recordingPrefix
+        ).then((frameData) => {
           globals.recordedFrames.push(frameData);
           globals.currentRecordingFrame++;
           globals.isCapturingFrame = false;
 
           // Update UI to show progress
           rebuildRightPane();
-        }
-      );
+        });
+      }
     } else {
-      // Recording complete - create and download ZIP
+      // Recording complete
       globals.isRecording = false;
-      downloadZip(globals.recordedFrames, globals.recordingPrefix);
-      globals.recordedFrames = [];
+
+      if (!globals.outputDirectoryHandle) {
+        // Only download ZIP if we weren't saving to folder
+        downloadZip(globals.recordedFrames, globals.recordingPrefix);
+        globals.recordedFrames = [];
+      }
+
       globals.currentRecordingFrame = 0;
       rebuildRightPane();
     }

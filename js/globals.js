@@ -14,4 +14,5 @@ export default {
   recordedFrames: [], // Store frame data for ZIP
   isCapturingFrame: false, // Prevent frame drops
   restartBeforeRecording: true, // New toggle
+  outputDirectoryHandle: null, // File System Access API handle
 };
