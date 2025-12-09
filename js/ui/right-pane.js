@@ -19,6 +19,7 @@ import { resetTextureSizes } from "../../entry";
 import { setupRenderTargets } from "../renderTargets";
 import { expandMap } from "../map";
 import { exportImage, downloadZip } from "../export";
+import { rebuildLeftPane } from "./left-pane";
 
 let pane;
 export let currentSeedType = InitialTextureTypes.CIRCLE;

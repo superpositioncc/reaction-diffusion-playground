@@ -2,31 +2,39 @@
 //  KEYBOARD CONTROLS
 //==============================================================
 
-import globals from './globals';
-import { drawFirstFrame } from './firstFrame';
-import { exportImage } from './export';
-import { toggleUI } from './ui';
-import { currentSeedType } from './ui/right-pane';
-import { setupRenderTargets } from './renderTargets';
+import globals from "./globals";
+import { drawFirstFrame } from "./firstFrame";
+import { exportImage } from "./export";
+import { toggleUI } from "./ui";
+import { currentSeedType } from "./ui/right-pane";
+import { setupRenderTargets } from "./renderTargets";
 
 export function setupKeyboard() {
-  window.addEventListener('keyup', function(e) {
-    switch(e.key) {
-      case ' ':
+  window.addEventListener("keyup", function (e) {
+    // Ignore keypresses if the user is typing in an input field
+    if (
+      document.activeElement.tagName === "INPUT" ||
+      document.activeElement.tagName === "TEXTAREA"
+    ) {
+      return;
+    }
+
+    switch (e.key) {
+      case " ":
         e.preventDefault();
         globals.isPaused = !globals.isPaused;
         break;
 
-      case 'r':
+      case "r":
         setupRenderTargets();
         drawFirstFrame(currentSeedType);
         break;
 
-      case 's':
+      case "s":
         exportImage();
         break;
 
-      case 'u':
+      case "u":
         toggleUI();
         break;
     }
