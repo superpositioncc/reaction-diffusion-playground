@@ -252,7 +252,7 @@ function setupSaveLoadSettings() {
     });
 
   settingsPane
-    .addButton({ title: "Delete Selected" })
+    .addButton({ title: "Delete selected" })
     .on("click", deleteSettings);
 }
 
