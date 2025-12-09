@@ -49,7 +49,7 @@ function saveSettings() {
 
   // Create a deep copy of parameterValues
   const parameterValuesCopy = JSON.parse(JSON.stringify(parameterValues));
-  
+
   // Remove large image data to prevent localStorage quota exceeded errors
   if (parameterValuesCopy.styleMap) {
     parameterValuesCopy.styleMap.imageData = null;
@@ -129,15 +129,15 @@ function loadSettings() {
     );
 
     simulationUniforms.styleMapParameters.value.set(
-      parameterValues.f,
-      parameterValues.k,
-      parameterValues.dA,
-      parameterValues.dB
+      parameterValues.styleMap.f,
+      parameterValues.styleMap.k,
+      parameterValues.styleMap.dA,
+      parameterValues.styleMap.dB
     );
 
     simulationUniforms.styleMapTransforms.value.set(
       parameterValues.styleMap.scale,
-      parameterValues.styleMap.rotation,
+      (parameterValues.styleMap.rotation * Math.PI) / 180,
       parameterValues.styleMap.translate.x,
       parameterValues.styleMap.translate.y
     );
